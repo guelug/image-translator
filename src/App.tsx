@@ -149,13 +149,13 @@ export default function App() {
       const firstImage = extractedImages[0];
       setPreviewOriginal(firstImage);
       
-      setProgress({ current: 0, total: 3, label: 'Generating Portuguese preview...' });
+      setProgress({ current: 1, total: 3, label: 'Translating to Portuguese (1/3)...' });
       const pt = await translateImage(firstImage.base64, firstImage.mimeType, 'Portuguese');
       
-      setProgress({ current: 1, total: 3, label: 'Generating French preview...' });
+      setProgress({ current: 2, total: 3, label: 'Translating to French (2/3)...' });
       const fr = await translateImage(firstImage.base64, firstImage.mimeType, 'French');
       
-      setProgress({ current: 2, total: 3, label: 'Generating English preview...' });
+      setProgress({ current: 3, total: 3, label: 'Translating to English (3/3)...' });
       const en = await translateImage(firstImage.base64, firstImage.mimeType, 'English');
       
       setPreviewTranslated({ pt, fr, en });
@@ -235,6 +235,24 @@ export default function App() {
     if (resultZip) {
       saveAs(resultZip, 'translated_infographics.zip');
     }
+  };
+
+  const downloadSingleImage = (base64Data: string, langCode: string) => {
+    if (!previewOriginal) return;
+    
+    const baseName = previewOriginal.name.substring(0, previewOriginal.name.lastIndexOf('.'));
+    const ext = previewOriginal.name.substring(previewOriginal.name.lastIndexOf('.'));
+    const fileName = `${baseName}_${langCode}${ext}`;
+    
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: previewOriginal.mimeType });
+    
+    saveAs(blob, fileName);
   };
 
   const reset = () => {
@@ -347,7 +365,12 @@ export default function App() {
           <div className="max-w-md mx-auto text-center py-20">
             <Loader2 size={48} className="animate-spin mx-auto mb-6 text-black" />
             <h2 className="text-2xl font-light mb-2">Generating Preview</h2>
-            <p className="text-gray-500 mb-8">Translating the first image to PT, FR, and EN to show you a sample...</p>
+            <p className="text-gray-500 mb-4">Translating the first image to PT, FR, and EN to show you a sample...</p>
+            
+            <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl mb-8 text-left flex gap-3 items-start">
+              <Loader2 size={18} className="animate-spin shrink-0 mt-0.5" />
+              <p><strong>Please wait:</strong> Image translation uses advanced AI and can take 30-60 seconds per language. Do not close this tab.</p>
+            </div>
             
             <div className="w-full bg-gray-200 rounded-full h-2 mb-2 overflow-hidden">
               <div 
@@ -355,7 +378,10 @@ export default function App() {
                 style={{ width: `${(progress.current / progress.total) * 100}%` }}
               ></div>
             </div>
-            <p className="text-xs font-mono text-gray-400 uppercase tracking-widest">{progress.label}</p>
+            <div className="flex justify-between items-center text-xs font-mono text-gray-400 uppercase tracking-widest">
+              <span>{progress.label}</span>
+              <span>{Math.round((progress.current / progress.total) * 100)}%</span>
+            </div>
           </div>
         )}
 
@@ -422,10 +448,17 @@ export default function App() {
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-medium text-lg mb-1">Portuguese (PT)</h3>
                     <p className="text-sm text-gray-500">Layout and visuals preserved.</p>
                   </div>
+                  <button 
+                    onClick={() => downloadSingleImage(previewTranslated.pt, 'PT')}
+                    className="p-3 bg-gray-50 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                    title="Download Portuguese Image"
+                  >
+                    <Download size={20} />
+                  </button>
                 </div>
 
                 {/* FR */}
@@ -437,10 +470,17 @@ export default function App() {
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-medium text-lg mb-1">French (FR)</h3>
                     <p className="text-sm text-gray-500">Layout and visuals preserved.</p>
                   </div>
+                  <button 
+                    onClick={() => downloadSingleImage(previewTranslated.fr, 'FR')}
+                    className="p-3 bg-gray-50 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                    title="Download French Image"
+                  >
+                    <Download size={20} />
+                  </button>
                 </div>
 
                 {/* EN */}
@@ -452,10 +492,17 @@ export default function App() {
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-medium text-lg mb-1">English (EN)</h3>
                     <p className="text-sm text-gray-500">Layout and visuals preserved.</p>
                   </div>
+                  <button 
+                    onClick={() => downloadSingleImage(previewTranslated.en, 'EN')}
+                    className="p-3 bg-gray-50 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                    title="Download English Image"
+                  >
+                    <Download size={20} />
+                  </button>
                 </div>
               </div>
             </div>
